@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/jwt": "^10.0.0",
+    "bullmq": "^5.57.0",
+    "fastify": "^5.5.0",
+    "next": "^15.4.6",
+    "pg": "^8.16.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "redis": "^5.8.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.2.1",
+    "jest": "^30.0.5",
+    "typescript": "^5.9.2"
+  }
+}

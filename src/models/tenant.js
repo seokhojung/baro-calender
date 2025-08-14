@@ -1,12 +1,23 @@
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'baro_calendar',
-  password: process.env.DB_PASSWORD || 'password',
-  port: process.env.DB_PORT || 5432,
-});
+// 테스트 환경에서 모킹할 수 있도록 pool을 변수로 분리
+let pool;
+
+// 테스트 환경에서 pool을 주입할 수 있는 메서드
+function setPool(newPool) {
+  pool = newPool;
+}
+
+// 기본 pool 생성
+if (!pool) {
+  pool = new Pool({
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'baro_calendar',
+    password: process.env.DB_PASSWORD || 'password',
+    port: process.env.DB_PORT || 5432,
+  });
+}
 
 class Tenant {
   static async create(tenantData) {
@@ -98,6 +109,20 @@ class Tenant {
       throw new Error(`Failed to list tenants: ${error.message}`);
     }
   }
+
+  static async count() {
+    const query = 'SELECT COUNT(*) FROM tenants';
+    
+    try {
+      const result = await pool.query(query);
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      throw new Error(`Failed to count tenants: ${error.message}`);
+    }
+  }
 }
 
-module.exports = Tenant;
+module.exports = {
+  Tenant,
+  setPool
+};

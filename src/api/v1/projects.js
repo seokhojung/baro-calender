@@ -1,5 +1,8 @@
 const fastify = require('fastify');
+<<<<<<< HEAD
 const Joi = require('joi');
+=======
+>>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291
 const ProjectService = require('../../services/projectService');
 const ACLMiddleware = require('../../middleware/acl');
 const {

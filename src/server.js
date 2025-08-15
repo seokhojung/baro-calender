@@ -33,11 +33,11 @@ fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function
   }
 });
 
-// 프로젝트 API 라우터 등록 (일시적으로 주석 처리)
-// fastify.register(require('./api/v1/projects'), { prefix: '/v1/projects' });
+// 프로젝트 API 라우터 등록
+fastify.register(require('./api/v1/projects'), { prefix: '/v1/projects' });
 
-// 멤버 API 라우터 등록 (일시적으로 주석 처리)
-// fastify.register(require('./api/v1/members'), { prefix: '/v1' });
+// 멤버 API 라우터 등록
+fastify.register(require('./api/v1/members'), { prefix: '/v1' });
 
 // 강화된 헬스체크 엔드포인트
 fastify.get('/health', async (request, reply) => {

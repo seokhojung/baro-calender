@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 // 환경 변수 로딩
 require('dotenv').config();
 
+=======
+>>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -11,8 +14,12 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
+<<<<<<< HEAD
 // 마이그레이션 스크립트가 기대하는 형식
 async function up() {
+=======
+async function createTables() {
+>>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291
   const client = await pool.connect();
   
   try {
@@ -118,7 +125,11 @@ if (require.main === module) {
   const command = process.argv[2];
   
   if (command === 'up') {
+<<<<<<< HEAD
     up()
+=======
+    createTables()
+>>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291
       .then(() => process.exit(0))
       .catch(() => process.exit(1));
   } else if (command === 'down') {
@@ -131,4 +142,8 @@ if (require.main === module) {
   }
 }
 
+<<<<<<< HEAD
 module.exports = { up, rollback };
+=======
+module.exports = { createTables, rollback };
+>>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291

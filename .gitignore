@@ -155,3 +155,14 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+
+# Git 설치 파일 (실수로 커밋된 파일들)
+*.exe
+*.msi
+*.dmg
+*.pkg
+
+# 임시 파일들
+*.tmp
+*.temp
+*.log

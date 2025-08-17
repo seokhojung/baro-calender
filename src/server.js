@@ -32,7 +32,7 @@ fastify.register(require('@fastify/swagger'), {
       description: '바로캘린더 API 서버 문서',
       version: '1.0.0'
     },
-    host: 'localhost:3000',
+    host: 'localhost:8000',
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json']
@@ -90,6 +90,9 @@ fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function
 
 // 프로젝트 API 라우터 등록
 fastify.register(require('./api/v1/projects'), { prefix: '/v1/projects' });
+
+// 타임라인 API 라우터 등록
+fastify.register(require('./api/v1/timeline'), { prefix: '/v1/timeline' });
 
 // 멤버 API 라우터 등록
 fastify.register(require('./api/v1/members'), { prefix: '/v1' });
@@ -222,7 +225,7 @@ const start = async () => {
     client.release();
     console.log('✅ Database connection successful');
     
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 8000;
     const host = process.env.HOST || '0.0.0.0';
     
     await fastify.listen({ port, host });

@@ -8,6 +8,99 @@ const ACLMiddleware = require('../../middleware/acl');
  */
 async function projectRoutes(fastify, options) {
   
+  // 모든 프로젝트 조회 API (테넌트별)
+  fastify.get('/', {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          tenant_id: { type: 'number', minimum: 1 },
+          limit: { type: 'number', minimum: 1, maximum: 1000, default: 100 },
+          offset: { type: 'number', minimum: 0, default: 0 },
+          search: { type: 'string', maxLength: 100 }
+        }
+      },
+      response: {
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              color: { type: 'string' },
+              tenant_id: { type: 'string' },
+              owner_id: { type: 'string' },
+              description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
+              created_at: { type: 'string', format: 'date-time' },
+              updated_at: { type: 'string', format: 'date-time' }
+            }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const { tenant_id, limit, offset, search } = request.query;
+      
+      // 개발용 테스트 데이터 반환
+      const testProjects = [
+        {
+          id: "1",
+          tenant_id: "1",
+          owner_id: "1",
+          name: "프로젝트 A",
+          color: "#3b82f6",
+          description: "팀 프로젝트 A",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: "2",
+          tenant_id: "1",
+          owner_id: "1",
+          name: "프로젝트 B",
+          color: "#ef4444",
+          description: "개인 프로젝트 B",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: "3",
+          tenant_id: "1",
+          owner_id: "1",
+          name: "프로젝트 C",
+          color: "#10b981",
+          description: "연구 프로젝트 C",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      
+      // 필터링 로직 (간단한 구현)
+      let filteredProjects = testProjects;
+      
+      if (search) {
+        filteredProjects = testProjects.filter(project => 
+          project.name.toLowerCase().includes(search.toLowerCase()) ||
+          project.description.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      
+      // 페이징 로직
+      const startIndex = offset || 0;
+      const endIndex = startIndex + (limit || 100);
+      filteredProjects = filteredProjects.slice(startIndex, endIndex);
+      
+      reply.send(filteredProjects);
+    } catch (error) {
+      reply.code(500).send({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  });
+  
   // 프로젝트 생성 API
   fastify.post('/', {
     schema: {

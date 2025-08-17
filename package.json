@@ -20,6 +20,7 @@
     "dev": "nodemon src/server.js",
     "server-bg": "start cmd /c \"npm run dev\"",
     "dev:debug": "nodemon --inspect src/server.js",
+    "dev:full": "concurrently \"npm run dev\" \"cd client && npm run dev\"",
     "test": "jest",
     "lint": "eslint src/",
     "build": "echo 'Build completed'"
@@ -27,6 +28,8 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.2.1",
+    "@types/react": "19.1.10",
+    "concurrently": "^9.2.0",
     "jest": "^30.0.5",
     "nodemon": "^3.1.10",
     "typescript": "^5.9.2",

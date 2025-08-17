@@ -9,7 +9,7 @@ class ServerStatus {
    * @param {number} port - 확인할 포트 번호
    * @returns {Promise<boolean>} 서버 실행 상태
    */
-  static async isServerRunning(port = 3000) {
+  static async isServerRunning(port = 8000) {
     try {
       const { stdout } = await execAsync(`netstat -ano | findstr :${port}`);
       return stdout.trim().length > 0;
@@ -24,7 +24,7 @@ class ServerStatus {
    * @param {number} port - 확인할 포트 번호
    * @returns {Promise<Object>} 서버 상태 정보
    */
-  static async getServerStatus(port = 3000) {
+  static async getServerStatus(port = 8000) {
     try {
       const isRunning = await this.isServerRunning(port);
       

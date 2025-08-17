@@ -1,19 +1,6 @@
 const fastify = require('fastify');
-<<<<<<< HEAD
-const Joi = require('joi');
-=======
->>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291
 const MemberService = require('../../services/memberService');
 const ACLMiddleware = require('../../middleware/acl');
-const {
-  inviteMemberSchema,
-  updateMemberRoleSchema,
-  memberIdSchema,
-  listMembersQuerySchema,
-  searchMembersQuerySchema,
-  bulkInviteMembersSchema,
-  memberStatsQuerySchema
-} = require('../../schemas/memberSchema');
 
 /**
  * 멤버 API 라우터
@@ -25,9 +12,20 @@ async function memberRoutes(fastify, options) {
   fastify.post('/projects/:project_id/members', {
     schema: {
       params: {
-        project_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          project_id: { type: 'number', minimum: 1 }
+        },
+        required: ['project_id']
       },
-      body: inviteMemberSchema,
+      body: {
+        type: 'object',
+        required: ['user_id', 'role'],
+        properties: {
+          user_id: { type: 'number', minimum: 1 },
+          role: { type: 'string', enum: ['Owner', 'Admin', 'Editor', 'Viewer'] }
+        }
+      },
       response: {
         201: {
           type: 'object',
@@ -108,9 +106,21 @@ async function memberRoutes(fastify, options) {
   fastify.get('/projects/:project_id/members', {
     schema: {
       params: {
-        project_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          project_id: { type: 'number', minimum: 1 }
+        },
+        required: ['project_id']
       },
-      querystring: listMembersQuerySchema,
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', minimum: 1, maximum: 1000, default: 10 },
+          offset: { type: 'number', minimum: 0, default: 0 },
+          role: { type: 'string', enum: ['Owner', 'Admin', 'Editor', 'Viewer'] },
+          search: { type: 'string', maxLength: 100 }
+        }
+      },
       response: {
         200: {
           type: 'array',
@@ -188,10 +198,20 @@ async function memberRoutes(fastify, options) {
   fastify.patch('/projects/:project_id/members/:user_id', {
     schema: {
       params: {
-        project_id: Joi.number().integer().positive().required(),
-        user_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          project_id: { type: 'number', minimum: 1 },
+          user_id: { type: 'number', minimum: 1 }
+        },
+        required: ['project_id', 'user_id']
       },
-      body: updateMemberRoleSchema,
+      body: {
+        type: 'object',
+        required: ['role'],
+        properties: {
+          role: { type: 'string', enum: ['Owner', 'Admin', 'Editor', 'Viewer'] }
+        }
+      },
       response: {
         200: {
           type: 'object',
@@ -264,8 +284,12 @@ async function memberRoutes(fastify, options) {
   fastify.delete('/projects/:project_id/members/:user_id', {
     schema: {
       params: {
-        project_id: Joi.number().integer().positive().required(),
-        user_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          project_id: { type: 'number', minimum: 1 },
+          user_id: { type: 'number', minimum: 1 }
+        },
+        required: ['project_id', 'user_id']
       },
       response: {
         200: {

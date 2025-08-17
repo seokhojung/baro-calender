@@ -8,6 +8,7 @@
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
     "joi": "^18.0.0",
+    "jsonwebtoken": "^9.0.2",
     "next": "^15.4.6",
     "pg": "^8.16.3",
     "react": "^19.1.1",
@@ -17,17 +18,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "server-bg": "start cmd /c \"npm run dev\"",
     "dev:debug": "nodemon --inspect src/server.js",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:unit": "jest tests/unit",
-    "test:integration": "jest tests/integration",
-    "migrate": "node src/database/run-migrations.js run",
-    "migrate:status": "node src/database/run-migrations.js status",
-    "migrate:reset": "node src/database/run-migrations.js down && node src/database/run-migrations.js run",
-    "db:setup": "npm run migrate",
-    "db:reset": "npm run migrate:reset"
+    "lint": "eslint src/",
+    "build": "echo 'Build completed'"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

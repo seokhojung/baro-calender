@@ -1,17 +1,6 @@
 const fastify = require('fastify');
-<<<<<<< HEAD
-const Joi = require('joi');
-=======
->>>>>>> 2b71f98b066ec7ed28857fc750a5e01cbb498291
 const ProjectService = require('../../services/projectService');
 const ACLMiddleware = require('../../middleware/acl');
-const {
-  createProjectSchema,
-  updateProjectSchema,
-  projectIdSchema,
-  listProjectsQuerySchema,
-  searchProjectsQuerySchema
-} = require('../../schemas/projectSchema');
 
 /**
  * 프로젝트 API 라우터
@@ -22,7 +11,16 @@ async function projectRoutes(fastify, options) {
   // 프로젝트 생성 API
   fastify.post('/', {
     schema: {
-      body: createProjectSchema,
+      body: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: { type: 'string', minLength: 1, maxLength: 100 },
+          color: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+          description: { oneOf: [{ type: 'string', maxLength: 1000 }, { type: 'null' }] },
+          settings: { type: 'object' }
+        }
+      },
       response: {
         201: {
           type: 'object',
@@ -32,7 +30,7 @@ async function projectRoutes(fastify, options) {
             color: { type: 'string' },
             tenant_id: { type: 'number' },
             owner_id: { type: 'number' },
-            description: { type: 'string' },
+            description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
             settings: { type: 'object' },
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' }
@@ -88,7 +86,13 @@ async function projectRoutes(fastify, options) {
   // 프로젝트 조회 API (ID로)
   fastify.get('/:id', {
     schema: {
-      params: projectIdSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', minimum: 1 }
+        },
+        required: ['id']
+      },
       response: {
         200: {
           type: 'object',
@@ -98,7 +102,7 @@ async function projectRoutes(fastify, options) {
             color: { type: 'string' },
             tenant_id: { type: 'number' },
             owner_id: { type: 'number' },
-            description: { type: 'string' },
+            description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
             settings: { type: 'object' },
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' }
@@ -143,7 +147,13 @@ async function projectRoutes(fastify, options) {
   // 프로젝트 조회 API (멤버 포함)
   fastify.get('/:id/with-members', {
     schema: {
-      params: projectIdSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', minimum: 1 }
+        },
+        required: ['id']
+      },
       response: {
         200: {
           type: 'object',
@@ -153,7 +163,7 @@ async function projectRoutes(fastify, options) {
             color: { type: 'string' },
             tenant_id: { type: 'number' },
             owner_id: { type: 'number' },
-            description: { type: 'string' },
+            description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
             settings: { type: 'object' },
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' },
@@ -206,8 +216,22 @@ async function projectRoutes(fastify, options) {
   // 프로젝트 수정 API
   fastify.patch('/:id', {
     schema: {
-      params: projectIdSchema,
-      body: updateProjectSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', minimum: 1 }
+        },
+        required: ['id']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, maxLength: 100 },
+          color: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+          description: { oneOf: [{ type: 'string', maxLength: 1000 }, { type: 'null' }] },
+          settings: { type: 'object' }
+        }
+      },
       response: {
         200: {
           type: 'object',
@@ -217,7 +241,7 @@ async function projectRoutes(fastify, options) {
             color: { type: 'string' },
             tenant_id: { type: 'number' },
             owner_id: { type: 'number' },
-            description: { type: 'string' },
+            description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
             settings: { type: 'object' },
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' }
@@ -290,7 +314,13 @@ async function projectRoutes(fastify, options) {
   // 프로젝트 삭제 API
   fastify.delete('/:id', {
     schema: {
-      params: projectIdSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', minimum: 1 }
+        },
+        required: ['id']
+      },
       response: {
         200: {
           type: 'object',
@@ -300,7 +330,7 @@ async function projectRoutes(fastify, options) {
             color: { type: 'string' },
             tenant_id: { type: 'number' },
             owner_id: { type: 'number' },
-            description: { type: 'string' },
+            description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
             settings: { type: 'object' },
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' }
@@ -372,9 +402,20 @@ async function projectRoutes(fastify, options) {
   fastify.get('/tenant/:tenant_id', {
     schema: {
       params: {
-        tenant_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          tenant_id: { type: 'number', minimum: 1 }
+        },
+        required: ['tenant_id']
       },
-      querystring: listProjectsQuerySchema,
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', minimum: 1, maximum: 1000, default: 10 },
+          offset: { type: 'number', minimum: 0, default: 0 },
+          search: { type: 'string', maxLength: 100 }
+        }
+      },
       response: {
         200: {
           type: 'array',
@@ -386,7 +427,7 @@ async function projectRoutes(fastify, options) {
               color: { type: 'string' },
               tenant_id: { type: 'number' },
               owner_id: { type: 'number' },
-              description: { type: 'string' },
+              description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
               created_at: { type: 'string', format: 'date-time' }
             }
           }
@@ -418,9 +459,19 @@ async function projectRoutes(fastify, options) {
   fastify.get('/user/:user_id', {
     schema: {
       params: {
-        user_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          user_id: { type: 'number', minimum: 1 }
+        },
+        required: ['user_id']
       },
-      querystring: listProjectsQuerySchema,
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', minimum: 1, maximum: 1000, default: 10 },
+          offset: { type: 'number', minimum: 0, default: 0 }
+        }
+      },
       response: {
         200: {
           type: 'array',
@@ -432,7 +483,7 @@ async function projectRoutes(fastify, options) {
               color: { type: 'string' },
               tenant_id: { type: 'number' },
               owner_id: { type: 'number' },
-              description: { type: 'string' },
+              description: { oneOf: [{ type: 'string' }, { type: 'null' }] },
               created_at: { type: 'string', format: 'date-time' }
             }
           }
@@ -458,7 +509,11 @@ async function projectRoutes(fastify, options) {
   fastify.get('/stats/tenant/:tenant_id', {
     schema: {
       params: {
-        tenant_id: Joi.number().integer().positive().required()
+        type: 'object',
+        properties: {
+          tenant_id: { type: 'number', minimum: 1 }
+        },
+        required: ['tenant_id']
       },
       response: {
         200: {

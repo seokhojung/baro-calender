@@ -24,3 +24,11 @@
 - 외부 캘린더(읽기→쓰기)
 - 댓글 멘션/푸시/이메일
 - 팀/조직 단위 역할(Owner/Manager/Member/Guest)
+
+### 4.4 기술 스택 및 구현 방식
+- **UI 컴포넌트**: shadcn/ui 기반 재사용 가능한 컴포넌트
+- **디자인 시스템**: tweakcn을 통한 프로젝트별 테마 커스터마이징
+- **성능 최적화**: React.memo, useMemo, useCallback 활용
+- **접근성**: WCAG 2.2 AA 준수, shadcn/ui 기본 접근성 지원
+- **반응형 디자인**: Tailwind CSS 기반 모바일 우선 접근성
+- **애니메이션**: Framer Motion을 활용한 부드러운 전환 효과

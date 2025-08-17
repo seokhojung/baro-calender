@@ -1,5 +1,6 @@
 const { PermissionChecker } = require('../models/permission');
 const Member = require('../models/member');
+const JWTUtils = require('../utils/jwtUtils');
 
 /**
  * ACL (Access Control List) 미들웨어
@@ -14,26 +15,79 @@ class ACLMiddleware {
   static authenticateUser() {
     return async (request, reply) => {
       try {
-        // TODO: 실제 JWT 토큰 검증 로직 구현
-        // const token = request.headers.authorization?.replace('Bearer ', '');
-        // if (!token) {
-        //   throw new Error('No token provided');
-        // }
+        // Authorization 헤더에서 토큰 추출
+        const authHeader = request.headers.authorization;
+        const token = JWTUtils.extractTokenFromHeader(authHeader);
         
-        // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // request.user = decoded;
-        
-        // 임시로 기본 사용자 정보 설정 (실제 구현 시 제거)
-        request.user = {
-          id: 1,
-          email: 'test@example.com',
-          tenant_id: 1
-        };
+        if (!token) {
+          reply.code(401).send({
+            error: 'Unauthorized',
+            message: 'No authentication token provided',
+            code: 'MISSING_TOKEN'
+          });
+          return;
+        }
+
+        // JWT_SECRET 환경 변수 확인
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+          reply.code(500).send({
+            error: 'Internal Server Error',
+            message: 'JWT_SECRET not configured',
+            code: 'JWT_CONFIG_ERROR'
+          });
+          return;
+        }
+
+        // 토큰 검증
+        try {
+          const decoded = JWTUtils.verifyToken(token, jwtSecret);
+          
+          // 토큰 만료 확인
+          if (JWTUtils.isTokenExpired(token, jwtSecret)) {
+            reply.code(401).send({
+              error: 'Unauthorized',
+              message: 'Authentication token has expired',
+              code: 'TOKEN_EXPIRED'
+            });
+            return;
+          }
+
+          // 블랙리스트 확인
+          const isBlacklisted = await JWTUtils.isTokenBlacklisted(token);
+          if (isBlacklisted) {
+            reply.code(401).send({
+              error: 'Unauthorized',
+              message: 'Authentication token has been revoked',
+              code: 'TOKEN_REVOKED'
+            });
+            return;
+          }
+
+          // 사용자 정보를 request에 추가
+          request.user = {
+            id: decoded.userId || decoded.id,
+            email: decoded.email,
+            tenant_id: decoded.tenantId || decoded.tenant_id,
+            role: decoded.role
+          };
+
+        } catch (jwtError) {
+          reply.code(401).send({
+            error: 'Unauthorized',
+            message: 'Invalid authentication token',
+            code: 'INVALID_TOKEN',
+            details: process.env.NODE_ENV === 'development' ? jwtError.message : undefined
+          });
+          return;
+        }
         
       } catch (error) {
-        reply.code(401).send({
-          error: 'Unauthorized',
-          message: 'Invalid or missing authentication token'
+        console.error('Authentication error:', error);
+        reply.code(500).send({
+          error: 'Internal Server Error',
+          message: 'Authentication process failed',
+          code: 'AUTH_ERROR'
         });
       }
     };

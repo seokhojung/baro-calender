@@ -1,6 +1,9 @@
 // 환경 변수 로딩
 require('dotenv').config();
 
+// 환경 변수 검증
+const EnvValidator = require('./utils/envValidator');
+
 const fastify = require('fastify')({
   logger: true,
   trustProxy: true
@@ -16,10 +19,62 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
+// JWT 플러그인 등록
+fastify.register(require('@fastify/jwt'), {
+  secret: process.env.JWT_SECRET || 'fallback-secret-key-for-development-only'
+});
+
+// Swagger 플러그인 등록
+fastify.register(require('@fastify/swagger'), {
+  swagger: {
+    info: {
+      title: 'Baro Calendar API',
+      description: '바로캘린더 API 서버 문서',
+      version: '1.0.0'
+    },
+    host: 'localhost:3000',
+    schemes: ['http'],
+    consumes: ['application/json'],
+    produces: ['application/json']
+  }
+});
+
+// Swagger UI 플러그인 등록
+fastify.register(require('@fastify/swagger-ui'), {
+  routePrefix: '/docs',
+  uiConfig: {
+    docExpansion: 'full',
+    deepLinking: false
+  },
+  uiHooks: {
+    onRequest: function (request, reply, next) { next() },
+    preHandler: function (request, reply, next) { next() }
+  },
+  staticCSP: true,
+  transformStaticCSP: (header) => header
+});
+
 // CORS 설정
 fastify.register(require('@fastify/cors'), {
   origin: true,
   credentials: true
+});
+
+// 응답 시간 측정 미들웨어
+fastify.addHook('onRequest', (request, reply, done) => {
+  request.startTime = Date.now();
+  done();
+});
+
+fastify.addHook('onResponse', (request, reply, done) => {
+  const responseTime = Date.now() - request.startTime;
+  reply.header('X-Response-Time', `${responseTime}ms`);
+  
+  // 로깅 (Winston 사용)
+  const logger = require('./utils/logger');
+  logger.info(`${request.method} ${request.url} - ${reply.statusCode} - ${responseTime}ms`);
+  
+  done();
 });
 
 // JSON 파싱 설정
@@ -66,6 +121,57 @@ fastify.get('/health', async (request, reply) => {
   }
 });
 
+// 테스트용 로그인 엔드포인트 (개발 환경에서만)
+fastify.post('/auth/test-login', async (request, reply) => {
+  try {
+    const { email, password } = request.body;
+    
+    // 간단한 테스트 인증 (실제로는 데이터베이스에서 확인해야 함)
+    if (email === 'test@example.com' && password === 'test123') {
+      const token = fastify.jwt.sign({
+        userId: 1,
+        email: 'test@example.com',
+        tenantId: 1,
+        role: 'Owner'
+      });
+      
+      return {
+        success: true,
+        token,
+        user: {
+          id: 1,
+          email: 'test@example.com',
+          tenant_id: 1,
+          role: 'Owner'
+        }
+      };
+    } else {
+      reply.code(401);
+      return {
+        success: false,
+        error: 'Invalid credentials'
+      };
+    }
+  } catch (error) {
+    reply.code(500);
+    return {
+      success: false,
+      error: 'Internal server error'
+    };
+  }
+});
+
+// 보호된 엔드포인트 테스트
+fastify.get('/auth/protected', {
+  preHandler: [require('./middleware/acl').authenticateUser()]
+}, async (request, reply) => {
+  return {
+    message: 'This is a protected endpoint',
+    user: request.user,
+    timestamp: new Date().toISOString()
+  };
+});
+
 // 루트 엔드포인트
 fastify.get('/', async (request, reply) => {
   return {
@@ -101,6 +207,15 @@ fastify.setErrorHandler(function (error, request, reply) {
 // 서버 시작
 const start = async () => {
   try {
+    // 환경 변수 검증
+    console.log('🔍 Validating environment variables...');
+    const envValidation = EnvValidator.validate();
+    console.log(envValidation.summary);
+    
+    if (!envValidation.isValid) {
+      throw new Error('Environment validation failed');
+    }
+
     // 데이터베이스 연결 테스트
     const client = await pool.connect();
     await client.query('SELECT 1');
